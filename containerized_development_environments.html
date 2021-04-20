@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Containerized Development Environment</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/black.css" id="theme">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css" id="highlight-theme">
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section
+				  data-markdown
+					data-separator="^\n---\n$"
+					data-separator-vertical="^\n--\n$"
+					data-separator-notes="^__notes__$"
+				>
+					<script type="text/template">
+						## Containerized Development Environments
+						04/20/21
+
+						---
+
+						### Goals
+						- Start to demystify the process
+						  - At the end of the day, it's all just code!
+						- Share knowledge to help with debugging common issues
+
+						---
+
+						### Disclaimer
+						![](https://i.kym-cdn.com/photos/images/original/000/234/739/fa5.jpg)
+
+						__notes__
+						- Very little experience w/ all of this!
+						- Grains of salt, just want to share what I have learned so far, to hopefully save others time digging through confusing code.
+
+						---
+
+						### Why do we even do this?
+						- Enforce consistency between each contributor's environment, less "works on my machine"
+						- Automates installation of dependencies, keeps them isolated from your machine, reduce clutter
+						- Better approximation of production environment (not perfect yet)
+
+						__notes__
+						- Dependencies: anyone who has tried to install Postgres (esp. multiple versions) will know this pain
+						- Cons are addressed later
+
+						---
+
+						### Infrastructure - Docker
+						- Defines Images, manages individual Containers
+						- `Dockerfile` - definition of Image, relevant in all environments
+
+						__notes__
+						- Gross over-simplifications:
+						  - Containers are like super-lightweight virtual machines, share the host OS and resources
+							- Images are how Containers are defined (like Class / Instance in OOP)
+						- Not going into too much detail into how Docker works, b/c of time and own ignorance
+
+						---
+
+						### Infrastructure - Docker
+						Example: `homes`
+
+						__notes__
+						- Very brief
+
+						---
+
+						### Infrastructure - Docker Compose
+						- Manages _orchestration_ of Containers
+						- `docker-compose.yml` - **ONLY RELEVANT IN DEVELOPMENT**
+							- The corresponding staging/production tool is Kubernetes
+
+						__notes__
+						- Similarly, not going into too much detail into how Docker Compose works
+						- I believe Core Tech is currently looking into replacing Docker Compose w/ kubernetes for more true-to-deployed local envs
+
+						---
+
+						### Infrastructure - Docker Compose
+						Example: `homes`
+
+						__notes__
+						- Talk very briefly about volumes, and how DB volume works
+						- Briefly mention multiple Dockerfiles, will go over in one of the walkthroughs
+
+						---
+
+						### Infrastructure - `make` commands
+						- The most confusing part, syntax is NOT intuitive for most (I imagine)
+						- `make` is generally used for building C/C++ programs, we use it here as a more generic build tool
+
+						---
+
+						### Infrastructure - `make` commands (examples)
+						```Makefile
+						# simple rule
+						homes-db-start:
+								docker-compose up -d db
+
+						# rule w/ prerequisites
+						start: am-i-logged-in .env generate-auto-ports deps
+								docker-compose up --build ${docker-compose-options}
+
+						# rule w/ prerequisites, command uses multiple Docker Compose files
+						start-watch: am-i-logged-in .env generate-auto-ports deps ${build-dir}
+								docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build ${docker-compose-options}
+						```
+
+						---
+
+						### Walkthrough #1
+						`make homes-db-start`
+
+						---
+
+						### Walkthrough #2
+						`make start`
+
+						__notes__
+						- Start at definition, look at prerequisites being added later
+
+						---
+
+						### Walkthrough #3
+						`make start-watch`
+
+						__notes__
+						- Example of difficulty "extending" another rule,
+
+						---
+
+						### Pain points
+
+						- Speed! Some common container startup steps (e.g. helm charts) take a while, unclear why sometimes
+						- Difficultly using `make` commands if unfamiliar w/ syntax:
+							- Sometimes confusing output, e.g. migrations appearing to run when they do not really
+							- Difficult to "extend" a task, e.g. `make start-watch` in homes
+						- Tests can be **very** slow to start up (e.g. `homes`) possibly depends on test framework used
+
+						__notes__
+						- We know these well! Not an exhaustive list
+						- Make "extend": maybe not just difficult, but impossible?
+						- Tests: current theory is that Jest is primary culprit in `homes`
+
+						---
+
+						### Questions
+					</script>
+				</section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+			});
+		</script>
+	</body>
+</html>
